@@ -80,7 +80,7 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client)}`;
+                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(client)}`;
                 clientElement.innerHTML = `
                     <h3>${client}</h3>
                     <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
