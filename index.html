@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Nett'Ovation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        input, button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .client-list {
+            margin-top: 20px;
+        }
+        .client-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Administration - Nett'Ovation</h1>
+    
+    <div class="section">
+        <h2>Ajouter un nouveau client</h2>
+        <form id="clientForm">
+            <input type="text" id="newClientName" placeholder="Nom du nouveau client" required>
+            <button type="submit">Ajouter un client</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>Liste des clients</h2>
+        <div id="clientList" class="client-list"></div>
+    </div>
+
+    <div class="footer">
+        <p>Nett'Ovation - Le nettoyage à la hauteur de vos attentes !</p>
+        <p>Contact : <a href="mailto:info@nett-ovation.fr">info@nett-ovation.fr</a> | Tél : 07 82 03 05 02</p>
+    </div>
+
+    <script>
+        function loadClients() {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const clientList = document.getElementById('clientList');
+            clientList.innerHTML = '';
+            clients.forEach(client => {
+                const clientElement = document.createElement('div');
+                clientElement.className = 'client-item';
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client)}`;
+                clientElement.innerHTML = `
+                    <h3>${client}</h3>
+                    <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
+                    <button onclick="deleteClient('${client}')" class="delete-btn">Supprimer le client</button>
+                `;
+                clientList.appendChild(clientElement);
+            });
+        }
+
+        function deleteClient(clientName) {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?`)) {
+                let clients = JSON.parse(localStorage.getItem('clients')) || [];
+                clients = clients.filter(client => client !== clientName);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                localStorage.removeItem(`avis_${clientName}`);
+                loadClients();
+            }
+        }
+
+        document.getElementById('clientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newClientName = document.getElementById('newClientName').value;
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            if (!clients.includes(newClientName)) {
+                clients.push(newClientName);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                document.getElementById('newClientName').value = '';
+                loadClients();
+                alert(`Client "${newClientName}" ajouté avec succès.`);
+            } else {
+                alert('Ce client existe déjà.');
+            }
+        });
+
+        loadClients();
+    </script>
+</body>
+</html>
