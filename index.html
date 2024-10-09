@@ -34,6 +34,9 @@
         .delete-btn {
             background-color: #f44336;
         }
+        .edit-btn {
+            background-color: #2196F3;
+        }
         .client-list {
             margin-top: 20px;
         }
@@ -61,7 +64,11 @@
     <div class="section">
         <h2>Ajouter un nouveau client</h2>
         <form id="clientForm">
-            <input type="text" id="newClientName" placeholder="Nom du nouveau client" required>
+            <input type="text" id="nomPrenom" placeholder="Nom et Prénom" required>
+            <input type="text" id="societe" placeholder="Société (optionnel)">
+            <input type="text" id="adresse" placeholder="Adresse" required>
+            <input type="tel" id="numero" placeholder="Numéro de téléphone" required>
+            <input type="email" id="email" placeholder="Adresse email" required>
             <button type="submit">Ajouter un client</button>
         </form>
     </div>
@@ -84,12 +91,17 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client.name)}`;
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client.nomPrenom)}`;
                 clientElement.innerHTML = `
-                    <h3>${client.name}</h3>
+                    <h3>${client.nomPrenom}</h3>
+                    <p>Société : ${client.societe || 'N/A'}</p>
+                    <p>Adresse : ${client.adresse}</p>
+                    <p>Téléphone : ${client.numero}</p>
+                    <p>Email : ${client.email}</p>
                     <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
-                    <img src="${client.qrCode}" alt="QR Code pour ${client.name}" class="qr-code">
-                    <button onclick="deleteClient('${client.name}')" class="delete-btn">Supprimer le client</button>
+                    <img src="${client.qrCode}" alt="QR Code pour ${client.nomPrenom}" class="qr-code">
+                    <button onclick="editClient('${client.nomPrenom}')" class="edit-btn">Modifier</button>
+                    <button onclick="deleteClient('${client.nomPrenom}')" class="delete-btn">Supprimer</button>
                 `;
                 clientList.appendChild(clientElement);
             });
@@ -98,10 +110,36 @@
         function deleteClient(clientName) {
             if (confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?`)) {
                 let clients = JSON.parse(localStorage.getItem('clients')) || [];
-                clients = clients.filter(client => client.name !== clientName);
+                clients = clients.filter(client => client.nomPrenom !== clientName);
                 localStorage.setItem('clients', JSON.stringify(clients));
                 localStorage.removeItem(`avis_${clientName}`);
                 loadClients();
+            }
+        }
+
+        function editClient(clientName) {
+            let clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const client = clients.find(c => c.nomPrenom === clientName);
+            if (client) {
+                document.getElementById('nomPrenom').value = client.nomPrenom;
+                document.getElementById('societe').value = client.societe || '';
+                document.getElementById('adresse').value = client.adresse;
+                document.getElementById('numero').value = client.numero;
+                document.getElementById('email').value = client.email;
+                
+                document.getElementById('clientForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    client.nomPrenom = document.getElementById('nomPrenom').value;
+                    client.societe = document.getElementById('societe').value;
+                    client.adresse = document.getElementById('adresse').value;
+                    client.numero = document.getElementById('numero').value;
+                    client.email = document.getElementById('email').value;
+                    
+                    localStorage.setItem('clients', JSON.stringify(clients));
+                    loadClients();
+                    resetForm();
+                    alert('Client modifié avec succès');
+                };
             }
         }
 
@@ -110,23 +148,34 @@
             return response.url;
         }
 
-        document.getElementById('clientForm').addEventListener('submit', async (e) => {
+        function resetForm() {
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientForm').onsubmit = addClient;
+        }
+
+        async function addClient(e) {
             e.preventDefault();
-            const newClientName = document.getElementById('newClientName').value;
+            const nomPrenom = document.getElementById('nomPrenom').value;
+            const societe = document.getElementById('societe').value;
+            const adresse = document.getElementById('adresse').value;
+            const numero = document.getElementById('numero').value;
+            const email = document.getElementById('email').value;
+
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            if (!clients.some(client => client.name === newClientName)) {
-                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(newClientName)}`;
+            if (!clients.some(client => client.nomPrenom === nomPrenom)) {
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(nomPrenom)}`;
                 const qrCodeUrl = await generateQRCode(clientLink);
-                clients.push({ name: newClientName, qrCode: qrCodeUrl });
+                clients.push({ nomPrenom, societe, adresse, numero, email, qrCode: qrCodeUrl });
                 localStorage.setItem('clients', JSON.stringify(clients));
-                document.getElementById('newClientName').value = '';
+                resetForm();
                 loadClients();
-                alert(`Client "${newClientName}" ajouté avec succès.`);
+                alert(`Client "${nomPrenom}" ajouté avec succès.`);
             } else {
                 alert('Ce client existe déjà.');
             }
-        });
+        }
 
+        document.getElementById('clientForm').onsubmit = addClient;
         loadClients();
     </script>
 </body>
