@@ -43,6 +43,10 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+        .qr-code {
+            display: block;
+            margin: 10px 0;
+        }
         .footer {
             margin-top: 20px;
             text-align: center;
@@ -80,11 +84,12 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(client)}`;
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client.name)}`;
                 clientElement.innerHTML = `
-                    <h3>${client}</h3>
+                    <h3>${client.name}</h3>
                     <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
-                    <button onclick="deleteClient('${client}')" class="delete-btn">Supprimer le client</button>
+                    <img src="${client.qrCode}" alt="QR Code pour ${client.name}" class="qr-code">
+                    <button onclick="deleteClient('${client.name}')" class="delete-btn">Supprimer le client</button>
                 `;
                 clientList.appendChild(clientElement);
             });
@@ -93,19 +98,26 @@
         function deleteClient(clientName) {
             if (confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?`)) {
                 let clients = JSON.parse(localStorage.getItem('clients')) || [];
-                clients = clients.filter(client => client !== clientName);
+                clients = clients.filter(client => client.name !== clientName);
                 localStorage.setItem('clients', JSON.stringify(clients));
                 localStorage.removeItem(`avis_${clientName}`);
                 loadClients();
             }
         }
 
-        document.getElementById('clientForm').addEventListener('submit', (e) => {
+        async function generateQRCode(url) {
+            const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`);
+            return response.url;
+        }
+
+        document.getElementById('clientForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const newClientName = document.getElementById('newClientName').value;
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            if (!clients.includes(newClientName)) {
-                clients.push(newClientName);
+            if (!clients.some(client => client.name === newClientName)) {
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(newClientName)}`;
+                const qrCodeUrl = await generateQRCode(clientLink);
+                clients.push({ name: newClientName, qrCode: qrCodeUrl });
                 localStorage.setItem('clients', JSON.stringify(clients));
                 document.getElementById('newClientName').value = '';
                 loadClients();
