@@ -115,7 +115,7 @@
             const newClientName = document.getElementById('newClientName').value;
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
             if (!clients.some(client => client.name === newClientName)) {
-                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(newClientName)}`;
+                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(newClientName)}`;
                 const qrCodeUrl = await generateQRCode(clientLink);
                 clients.push({ name: newClientName, qrCode: qrCodeUrl });
                 localStorage.setItem('clients', JSON.stringify(clients));
