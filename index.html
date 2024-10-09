@@ -24,7 +24,7 @@
             height: auto;
         }
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 20px auto;
             padding: 0 20px;
         }
@@ -56,12 +56,31 @@
         button:hover {
             background-color: #2980b9;
         }
+        .delete-btn {
+            background-color: #e74c3c;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .client-list {
+            margin-top: 20px;
+        }
         .client-item {
             background-color: #f9f9f9;
             border-left: 4px solid #3498db;
             padding: 15px;
             margin-bottom: 15px;
             border-radius: 4px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -73,41 +92,25 @@
     
     <div class="container">
         <div class="section">
-            <h2>Ajouter un client</h2>
+            <h2>Ajouter un nouveau client</h2>
             <form id="clientForm">
-                <input type="text" id="nomPrenom" placeholder="Nom et Prénom" required>
-                <input type="text" id="societe" placeholder="Société (optionnel)">
-                <input type="text" id="adresse" placeholder="Adresse" required>
-                <input type="tel" id="numero" placeholder="Numéro de téléphone" required>
-                <input type="email" id="email" placeholder="Adresse email" required>
-                <button type="submit">Ajouter le client</button>
+                <input type="text" id="newClientName" placeholder="Nom du nouveau client" required>
+                <button type="submit">Ajouter un client</button>
             </form>
         </div>
 
         <div class="section">
             <h2>Liste des clients</h2>
-            <div id="clientList"></div>
+            <div id="clientList" class="client-list"></div>
+        </div>
+
+        <div class="footer">
+            <p>Nett'Ovation - Le nettoyage à la hauteur de vos attentes !</p>
+            <p>Contact : <a href="mailto:info@nett-ovation.fr">info@nett-ovation.fr</a> | Tél : 07 82 03 05 02</p>
         </div>
     </div>
 
     <script>
-        function addClient(e) {
-            e.preventDefault();
-            const client = {
-                id: Date.now().toString(),
-                nomPrenom: document.getElementById('nomPrenom').value,
-                societe: document.getElementById('societe').value,
-                adresse: document.getElementById('adresse').value,
-                numero: document.getElementById('numero').value,
-                email: document.getElementById('email').value
-            };
-            let clients = JSON.parse(localStorage.getItem('clients')) || [];
-            clients.push(client);
-            localStorage.setItem('clients', JSON.stringify(clients));
-            document.getElementById('clientForm').reset();
-            loadClients();
-        }
-
         function loadClients() {
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
             const clientList = document.getElementById('clientList');
@@ -115,20 +118,41 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?id=${client.id}`;
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client)}`;
                 clientElement.innerHTML = `
-                    <h3>${client.nomPrenom}</h3>
-                    <p>Société : ${client.societe || 'N/A'}</p>
-                    <p>Adresse : ${client.adresse}</p>
-                    <p>Téléphone : ${client.numero}</p>
-                    <p>Email : ${client.email}</p>
-                    <p>Lien client : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
+                    <h3>${client}</h3>
+                    <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
+                    <button onclick="deleteClient('${client}')" class="delete-btn">Supprimer le client</button>
                 `;
                 clientList.appendChild(clientElement);
             });
         }
 
-        document.getElementById('clientForm').addEventListener('submit', addClient);
+        function deleteClient(clientName) {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?`)) {
+                let clients = JSON.parse(localStorage.getItem('clients')) || [];
+                clients = clients.filter(client => client !== clientName);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                localStorage.removeItem(`avis_${clientName}`);
+                loadClients();
+            }
+        }
+
+        document.getElementById('clientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newClientName = document.getElementById('newClientName').value;
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            if (!clients.includes(newClientName)) {
+                clients.push(newClientName);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                document.getElementById('newClientName').value = '';
+                loadClients();
+                alert(`Client "${newClientName}" ajouté avec succès.`);
+            } else {
+                alert('Ce client existe déjà.');
+            }
+        });
+
         loadClients();
     </script>
 </body>
