@@ -4,127 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration - Nett'Ovation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1, h2 {
-            color: #2c3e50;
-            text-align: center;
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-            transition: transform 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        .client-item {
-            background-color: #ecf0f1;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-        .client-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .client-actions button {
-            width: auto;
-            padding: 5px 10px;
-        }
-        .delete-btn {
-            background-color: #e74c3c;
-        }
-        .delete-btn:hover {
-            background-color: #c0392b;
-        }
-        .edit-btn {
-            background-color: #2ecc71;
-        }
-        .edit-btn:hover {
-            background-color: #27ae60;
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        input, button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .client-item { background-color: #f9f9f9; padding: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1><i class="fas fa-broom"></i> Administration Nett'Ovation</h1>
-        
-        <div class="card">
-            <h2>Ajouter/Modifier un client</h2>
-            <form id="clientForm">
-                <input type="hidden" id="clientId">
-                <input type="text" id="nomPrenom" placeholder="Nom et Prénom" required>
-                <input type="text" id="societe" placeholder="Société (optionnel)">
-                <input type="text" id="adresse" placeholder="Adresse" required>
-                <input type="tel" id="numero" placeholder="Numéro de téléphone" required>
-                <input type="email" id="email" placeholder="Adresse email" required>
-                <button type="submit"><i class="fas fa-save"></i> Enregistrer le client</button>
-            </form>
-        </div>
+    <h1>Administration - Nett'Ovation</h1>
+    
+    <div class="section">
+        <h2>Ajouter/Modifier un client</h2>
+        <form id="clientForm">
+            <input type="hidden" id="clientId">
+            <input type="text" id="nomPrenom" placeholder="Nom et Prénom" required>
+            <input type="text" id="societe" placeholder="Société (optionnel)">
+            <input type="text" id="adresse" placeholder="Adresse" required>
+            <input type="tel" id="numero" placeholder="Numéro de téléphone" required>
+            <input type="email" id="email" placeholder="Adresse email" required>
+            <button type="submit">Enregistrer le client</button>
+        </form>
+    </div>
 
-        <div class="card">
-            <h2>Liste des clients</h2>
-            <div id="clientList"></div>
-        </div>
+    <div class="section">
+        <h2>Liste des clients</h2>
+        <div id="clientList"></div>
     </div>
 
     <script>
-        // Le script JavaScript reste le même que dans la version précédente
-        // Ajoutez seulement des icônes aux boutons dans la fonction loadClients :
-        function loadClients() {
-            // ... (le reste du code reste inchangé)
-            clientElement.innerHTML = `
-                <h3>${client.nomPrenom}</h3>
-                <p><i class="fas fa-building"></i> Société : ${client.societe || 'N/A'}</p>
-                <p><i class="fas fa-map-marker-alt"></i> Adresse : ${client.adresse}</p>
-                <p><i class="fas fa-phone"></i> Téléphone : ${client.numero}</p>
-                <p><i class="fas fa-envelope"></i> Email : ${client.email}</p>
-                <p><i class="fas fa-link"></i> Lien client : <a href="client.html?id=${client.id}" target="_blank">Ouvrir la page client</a></p>
-                <div class="client-actions">
-                    <button onclick="editClient('${client.id}')" class="edit-btn"><i class="fas fa-edit"></i> Modifier</button>
-                    <button onclick="deleteClient('${client.id}')" class="delete-btn"><i class="fas fa-trash"></i> Supprimer</button>
-                </div>
-            `;
-            // ... (le reste du code reste inchangé)
+        function saveClient(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('clientId').value || Date.now().toString();
+            const client = {
+                id: clientId,
+                nomPrenom: document.getElementById('nomPrenom').value,
+                societe: document.getElementById('societe').value,
+                adresse: document.getElementById('adresse').value,
+                numero: document.getElementById('numero').value,
+                email: document.getElementById('email').value
+            };
+            let clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const index = clients.findIndex(c => c.id === clientId);
+            if (index > -1) {
+                clients[index] = client;
+            } else {
+                clients.push(client);
+            }
+            localStorage.setItem('clients', JSON.stringify(clients));
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientId').value = '';
+            loadClients();
         }
+
+        function loadClients() {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const clientList = document.getElementById('clientList');
+            clientList.innerHTML = '';
+            clients.forEach(client => {
+                const clientElement = document.createElement('div');
+                clientElement.className = 'client-item';
+                clientElement.innerHTML = `
+                    <h3>${client.nomPrenom}</h3>
+                    <p>Société : ${client.societe || 'N/A'}</p>
+                    <p>Adresse : ${client.adresse}</p>
+                    <p>Téléphone : ${client.numero}</p>
+                    <p>Email : ${client.email}</p>
+                    <p>Lien client : <a href="client.html?id=${client.id}" target="_blank">Ouvrir la page client</a></p>
+                    <button onclick="editClient('${client.id}')">Modifier</button>
+                    <button onclick="deleteClient('${client.id}')">Supprimer</button>
+                `;
+                clientList.appendChild(clientElement);
+            });
+        }
+
+        function editClient(clientId) {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const client = clients.find(c => c.id === clientId);
+            if (client) {
+                document.getElementById('clientId').value = client.id;
+                document.getElementById('nomPrenom').value = client.nomPrenom;
+                document.getElementById('societe').value = client.societe || '';
+                document.getElementById('adresse').value = client.adresse;
+                document.getElementById('numero').value = client.numero;
+                document.getElementById('email').value = client.email;
+            }
+        }
+
+        function deleteClient(clientId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+                let clients = JSON.parse(localStorage.getItem('clients')) || [];
+                clients = clients.filter(c => c.id !== clientId);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                loadClients();
+            }
+        }
+
+        document.getElementById('clientForm').addEventListener('submit', saveClient);
+        loadClients();
     </script>
 </body>
 </html>
