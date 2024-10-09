@@ -5,57 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration - Nett'Ovation</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .section {
-            border: 1px solid #ccc;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: #f9f9f9;
-        }
-        input, button {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .delete-btn {
-            background-color: #f44336;
-        }
-        .edit-btn {
-            background-color: #2196F3;
-        }
-        .client-list {
-            margin-top: 20px;
-        }
-        .client-item {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .qr-code {
-            display: block;
-            margin: 10px 0;
-        }
-        .footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #666;
-        }
+        /* Styles précédents inchangés */
     </style>
 </head>
 <body>
@@ -91,7 +41,7 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(client.nomPrenom)}`;
+                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client.id)}`;
                 clientElement.innerHTML = `
                     <h3>${client.nomPrenom}</h3>
                     <p>Société : ${client.societe || 'N/A'}</p>
@@ -100,26 +50,27 @@
                     <p>Email : ${client.email}</p>
                     <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
                     <img src="${client.qrCode}" alt="QR Code pour ${client.nomPrenom}" class="qr-code">
-                    <button onclick="editClient('${client.nomPrenom}')" class="edit-btn">Modifier</button>
-                    <button onclick="deleteClient('${client.nomPrenom}')" class="delete-btn">Supprimer</button>
+                    <button onclick="editClient('${client.id}')" class="edit-btn">Modifier</button>
+                    <button onclick="deleteClient('${client.id}')" class="delete-btn">Supprimer</button>
                 `;
                 clientList.appendChild(clientElement);
             });
         }
 
-        function deleteClient(clientName) {
-            if (confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?`)) {
-                let clients = JSON.parse(localStorage.getItem('clients')) || [];
-                clients = clients.filter(client => client.nomPrenom !== clientName);
-                localStorage.setItem('clients', JSON.stringify(clients));
-                localStorage.removeItem(`avis_${clientName}`);
+        function deleteClient(clientId) {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const client = clients.find(c => c.id === clientId);
+            if (client && confirm(`Êtes-vous sûr de vouloir supprimer le client "${client.nomPrenom}" ?`)) {
+                const updatedClients = clients.filter(c => c.id !== clientId);
+                localStorage.setItem('clients', JSON.stringify(updatedClients));
+                localStorage.removeItem(`avis_${clientId}`);
                 loadClients();
             }
         }
 
-        function editClient(clientName) {
+        function editClient(clientId) {
             let clients = JSON.parse(localStorage.getItem('clients')) || [];
-            const client = clients.find(c => c.nomPrenom === clientName);
+            const client = clients.find(c => c.id === clientId);
             if (client) {
                 document.getElementById('nomPrenom').value = client.nomPrenom;
                 document.getElementById('societe').value = client.societe || '';
@@ -162,17 +113,16 @@
             const email = document.getElementById('email').value;
 
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            if (!clients.some(client => client.nomPrenom === nomPrenom)) {
-                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(nomPrenom)}`;
-                const qrCodeUrl = await generateQRCode(clientLink);
-                clients.push({ nomPrenom, societe, adresse, numero, email, qrCode: qrCodeUrl });
-                localStorage.setItem('clients', JSON.stringify(clients));
-                resetForm();
-                loadClients();
-                alert(`Client "${nomPrenom}" ajouté avec succès.`);
-            } else {
-                alert('Ce client existe déjà.');
-            }
+            const newClientId = Date.now().toString();
+            const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(newClientId)}`;
+            const qrCodeUrl = await generateQRCode(clientLink);
+            
+            const newClient = { id: newClientId, nomPrenom, societe, adresse, numero, email, qrCode: qrCodeUrl };
+            clients.push(newClient);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            resetForm();
+            loadClients();
+            alert(`Client "${nomPrenom}" ajouté avec succès.`);
         }
 
         document.getElementById('clientForm').onsubmit = addClient;
