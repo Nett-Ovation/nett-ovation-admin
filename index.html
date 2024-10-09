@@ -41,7 +41,7 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(client.id)}`;
+                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(client.id)}`;
                 clientElement.innerHTML = `
                     <h3>${client.nomPrenom}</h3>
                     <p>Société : ${client.societe || 'N/A'}</p>
