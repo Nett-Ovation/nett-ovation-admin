@@ -5,35 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration - Nett'Ovation</title>
     <style>
-        /* Styles précédents inchangés */
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        input, button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .client-item { background-color: #f9f9f9; padding: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <h1>Administration - Nett'Ovation</h1>
     
     <div class="section">
-        <h2>Ajouter un nouveau client</h2>
+        <h2>Ajouter/Modifier un client</h2>
         <form id="clientForm">
+            <input type="hidden" id="clientId">
             <input type="text" id="nomPrenom" placeholder="Nom et Prénom" required>
             <input type="text" id="societe" placeholder="Société (optionnel)">
             <input type="text" id="adresse" placeholder="Adresse" required>
             <input type="tel" id="numero" placeholder="Numéro de téléphone" required>
             <input type="email" id="email" placeholder="Adresse email" required>
-            <button type="submit">Ajouter un client</button>
+            <button type="submit">Enregistrer le client</button>
         </form>
     </div>
 
     <div class="section">
         <h2>Liste des clients</h2>
-        <div id="clientList" class="client-list"></div>
-    </div>
-
-    <div class="footer">
-        <p>Nett'Ovation - Le nettoyage à la hauteur de vos attentes !</p>
-        <p>Contact : <a href="mailto:info@nett-ovation.fr">info@nett-ovation.fr</a> | Tél : 07 82 03 05 02</p>
+        <div id="clientList"></div>
     </div>
 
     <script>
+        function saveClient(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('clientId').value || Date.now().toString();
+            const client = {
+                id: clientId,
+                nomPrenom: document.getElementById('nomPrenom').value,
+                societe: document.getElementById('societe').value,
+                adresse: document.getElementById('adresse').value,
+                numero: document.getElementById('numero').value,
+                email: document.getElementById('email').value
+            };
+            let clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const index = clients.findIndex(c => c.id === clientId);
+            if (index > -1) {
+                clients[index] = client;
+            } else {
+                clients.push(client);
+            }
+            localStorage.setItem('clients', JSON.stringify(clients));
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientId').value = '';
+            loadClients();
+        }
+
         function loadClients() {
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
             const clientList = document.getElementById('clientList');
@@ -41,91 +65,43 @@
             clients.forEach(client => {
                 const clientElement = document.createElement('div');
                 clientElement.className = 'client-item';
-                const clientLink = `https://nett-ovation.github.io/nett-ovation-client/?client=${encodeURIComponent(client.id)}`;
                 clientElement.innerHTML = `
                     <h3>${client.nomPrenom}</h3>
                     <p>Société : ${client.societe || 'N/A'}</p>
                     <p>Adresse : ${client.adresse}</p>
                     <p>Téléphone : ${client.numero}</p>
                     <p>Email : ${client.email}</p>
-                    <p>Lien unique : <a href="${clientLink}" target="_blank">${clientLink}</a></p>
-                    <img src="${client.qrCode}" alt="QR Code pour ${client.nomPrenom}" class="qr-code">
-                    <button onclick="editClient('${client.id}')" class="edit-btn">Modifier</button>
-                    <button onclick="deleteClient('${client.id}')" class="delete-btn">Supprimer</button>
+                    <p>Lien client : <a href="client.html?id=${client.id}" target="_blank">Ouvrir la page client</a></p>
+                    <button onclick="editClient('${client.id}')">Modifier</button>
+                    <button onclick="deleteClient('${client.id}')">Supprimer</button>
                 `;
                 clientList.appendChild(clientElement);
             });
         }
 
-        function deleteClient(clientId) {
+        function editClient(clientId) {
             const clients = JSON.parse(localStorage.getItem('clients')) || [];
             const client = clients.find(c => c.id === clientId);
-            if (client && confirm(`Êtes-vous sûr de vouloir supprimer le client "${client.nomPrenom}" ?`)) {
-                const updatedClients = clients.filter(c => c.id !== clientId);
-                localStorage.setItem('clients', JSON.stringify(updatedClients));
-                localStorage.removeItem(`avis_${clientId}`);
-                loadClients();
-            }
-        }
-
-        function editClient(clientId) {
-            let clients = JSON.parse(localStorage.getItem('clients')) || [];
-            const client = clients.find(c => c.id === clientId);
             if (client) {
+                document.getElementById('clientId').value = client.id;
                 document.getElementById('nomPrenom').value = client.nomPrenom;
                 document.getElementById('societe').value = client.societe || '';
                 document.getElementById('adresse').value = client.adresse;
                 document.getElementById('numero').value = client.numero;
                 document.getElementById('email').value = client.email;
-                
-                document.getElementById('clientForm').onsubmit = function(e) {
-                    e.preventDefault();
-                    client.nomPrenom = document.getElementById('nomPrenom').value;
-                    client.societe = document.getElementById('societe').value;
-                    client.adresse = document.getElementById('adresse').value;
-                    client.numero = document.getElementById('numero').value;
-                    client.email = document.getElementById('email').value;
-                    
-                    localStorage.setItem('clients', JSON.stringify(clients));
-                    loadClients();
-                    resetForm();
-                    alert('Client modifié avec succès');
-                };
             }
         }
 
-        async function generateQRCode(url) {
-            const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`);
-            return response.url;
+        function deleteClient(clientId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+                let clients = JSON.parse(localStorage.getItem('clients')) || [];
+                clients = clients.filter(c => c.id !== clientId);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                loadClients();
+            }
         }
 
-        function resetForm() {
-            document.getElementById('clientForm').reset();
-            document.getElementById('clientForm').onsubmit = addClient;
-        }
-
-        async function addClient(e) {
-            e.preventDefault();
-            const nomPrenom = document.getElementById('nomPrenom').value;
-            const societe = document.getElementById('societe').value;
-            const adresse = document.getElementById('adresse').value;
-            const numero = document.getElementById('numero').value;
-            const email = document.getElementById('email').value;
-
-            const clients = JSON.parse(localStorage.getItem('clients')) || [];
-            const newClientId = Date.now().toString();
-            const clientLink = `https://your-github-username.github.io/nett-ovation-client/?client=${encodeURIComponent(newClientId)}`;
-            const qrCodeUrl = await generateQRCode(clientLink);
-            
-            const newClient = { id: newClientId, nomPrenom, societe, adresse, numero, email, qrCode: qrCodeUrl };
-            clients.push(newClient);
-            localStorage.setItem('clients', JSON.stringify(clients));
-            resetForm();
-            loadClients();
-            alert(`Client "${nomPrenom}" ajouté avec succès.`);
-        }
-
-        document.getElementById('clientForm').onsubmit = addClient;
+        document.getElementById('clientForm').addEventListener('submit', saveClient);
         loadClients();
     </script>
 </body>
